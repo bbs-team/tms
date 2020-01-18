@@ -1,0 +1,24 @@
+spring:
+  profiles: product
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: 
+    username: 
+    password: 
+  jpa:
+    database: mysql
+---
+spring:
+  profiles:
+    active: develop
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: 
+    username: 
+    password: 
+  jpa:
+    database: mysql
+    show-sql: true
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
