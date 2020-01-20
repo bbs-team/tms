@@ -35,7 +35,7 @@ public class crawlingController {
         String url = "https://torrentwal2.com/bbs/s.php?k=" + query.getQuery() + "&q=";
 
         Document doc = Jsoup.connect(url).get();
-
+        
         Elements Eles = doc.select("tr[class=bg1]");
 
         for(Element ele : Eles){
