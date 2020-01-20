@@ -34,20 +34,31 @@ public class crawlingController {
       for(Searching query : searchingList){
         String url = "https://torrentwal2.com/bbs/s.php?k=" + query.getQuery() + "&q=";
 
+        //토렌트왈 connection
         Document doc = Jsoup.connect(url).get();
-        
+
         Elements Eles = doc.select("tr[class=bg1]");
 
         for(Element ele : Eles){
+          //magent 추출을 위한 jsoup select
           Elements elementMagnet = ele.select("td[class=num] > a");
           Elements elementTitle = ele.select("td[class=subject] > a[target=s]");
           String title = elementTitle.text();
           String fullmagnet = elementMagnet.attr("href");
+
+          //magnet정보만 뽑기
           String magnet = magnetString(fullmagnet);
           
+          //검색한 list's date 추출
           int Date = catchDate(title);
+          if(Date == -1) continue;
           
           if(Date > query.getDate()){
+            //searching 날짜 최신화
+            query.setDate(Date);
+            searchingRepo.save(query);
+
+            //다운받은 항목 추가
             addVideo(title, query.getKind());
           }else{
             System.out.println("날짜가 더 빠르므로 넘어갑니다.");
@@ -86,16 +97,16 @@ public class crawlingController {
   }
 
   public int catchDate(String title) {
-    int firstP = title.indexOf(".");
-    int secondP = title.indexOf(".", firstP+1)+1;
-    int lastP = title.indexOf(".", secondP+1);
-    
-    String myDate = "";
-    myDate += title.substring(secondP, lastP);
+    String[] word = title.split("\\.", 4);
+    int Date = -1;
 
-    int Date = Integer.parseInt(myDate);
+    if(word.length < 3) return -1;
+    else if(word[2].length() == 6){
+      Date = Integer.parseInt(word[2]);
+      return Date;
+    }
 
-    return Date;
+    return -1;
   }
 
 }
