@@ -16,7 +16,8 @@ public enum Result {
   SUCCESS(0, "success"),
   FAIL(1, "fail"),
   USER_EXISTS(1001, "The username already exists."),
-  USER_NOT_FOUND(1002, "The user could not found.");
+  USER_NOT_FOUND(1002, "The user could not found."),
+  QUERY_EXISTS(1003,"The queryname already exists.");
 
   private int code;
   private String msg;

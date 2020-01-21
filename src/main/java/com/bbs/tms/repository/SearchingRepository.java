@@ -9,4 +9,9 @@ import org.springframework.stereotype.Repository;
  * searching query Repository
  */
 @Repository
-public interface SearchingRepository extends CrudRepository<Searching, Integer> {}
+public interface SearchingRepository extends CrudRepository<Searching, Integer> {
+
+  public boolean existsByName(String name);
+  public Object findByName(String name);
+
+}

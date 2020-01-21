@@ -24,8 +24,8 @@ public class crawlingController {
   @Autowired
   private SearchingRepository searchingRepo;
 
-  @Scheduled(cron = "10 * * * * *")
-  public void test() {
+  @Scheduled(cron = "0 0 1 * * *")
+  public void crawling() {
 
     try {
 
@@ -94,9 +94,11 @@ public class crawlingController {
     }else{
       System.out.println("\'" + title + "\'가 존재하여 전송하지 않습니다.");
     }
+
   }
 
   public int catchDate(String title) {
+
     String[] word = title.split("\\.", 4);
     int Date = -1;
 
@@ -107,6 +109,7 @@ public class crawlingController {
     }
 
     return -1;
+
   }
 
 }

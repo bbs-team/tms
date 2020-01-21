@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
  * UserController
  */
 @RestController
-@RequestMapping(value = "/user")
+@RequestMapping("/user")
 public class UserController {
 
   @Autowired
@@ -34,6 +34,7 @@ public class UserController {
    */
   @GetMapping(value = "")
   public Iterable<User> getUserList() {
+    System.out.println("오긴옴");
     return userRepo.findAll();
   }
 
@@ -42,7 +43,7 @@ public class UserController {
    * @param idx
    * @return user
    */
-  @GetMapping(value = "{idx}")
+  @GetMapping(value = "/{idx}")
   public Object getUser(@PathVariable int idx) {
     Optional<User> user = userRepo.findById(idx);
     return user.isPresent() ? user.get()
@@ -70,7 +71,7 @@ public class UserController {
    * @param user
    * @return ResponseEntity 200 or 401
    */
-  @PutMapping(value = "{idx}")
+  @PutMapping(value = "/{idx}")
   public Object updateUser(@PathVariable int idx, @RequestBody User user) {
     Optional<User> oriUser = userRepo.findById(idx);
     if (!oriUser.isPresent()) {
@@ -87,7 +88,7 @@ public class UserController {
    * @param idx
    * @return ResponseEntiry 200 or 401
    */
-  @DeleteMapping(value = "{idx}")
+  @DeleteMapping(value = "/{idx}")
   public Object removeUser(@PathVariable int idx) {
     if (!userRepo.existsById(idx)) {
       return Result.USER_NOT_FOUND.toResponse(HttpStatus.BAD_REQUEST);

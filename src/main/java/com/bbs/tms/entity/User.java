@@ -26,7 +26,7 @@ public class User {
 
   @Id()
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(columnDefinition = "MEDIUMINT(8) UNISIGNED")
+  @Column(columnDefinition = "MEDIUMINT(8) UNSIGNED")
   private int idx;
 
   @Column(length=50, unique = true, nullable = false, updatable = false)
@@ -40,7 +40,7 @@ public class User {
   private String nickname;
 
   @Column(nullable = false, insertable = false, updatable = false)
-  @ColumnDefault(value = "CURRENT_TIMESTAMP()")
+  @ColumnDefault(value = "CURRENT_TIMESTAMP")
   private Timestamp createDate;
 
 }
