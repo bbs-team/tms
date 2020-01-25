@@ -1,6 +1,18 @@
 package com.bbs.tms.controller;
 
 import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.HostnameVerifier; 
+import javax.net.ssl.HttpsURLConnection; 
+import javax.net.ssl.SSLContext; 
+import javax.net.ssl.SSLSession; 
+import javax.net.ssl.X509TrustManager;
 
 import com.bbs.tms.entity.Searching;
 import com.bbs.tms.entity.Video;
@@ -13,9 +25,11 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequestMapping("/check")
 public class crawlingController {
 
   @Autowired
@@ -24,7 +38,7 @@ public class crawlingController {
   @Autowired
   private SearchingRepository searchingRepo;
 
-  @Scheduled(cron = "0 0 1 * * *")
+  @Scheduled(cron = "0 * * * * *")
   public void crawling() {
 
     try {
@@ -32,7 +46,11 @@ public class crawlingController {
       Iterable<Searching> searchingList = searchingRepo.findAll();
 
       for(Searching query : searchingList){
-        String url = "https://torrentwal2.com/bbs/s.php?k=" + query.getQuery() + "&q=";
+        String url = "https://torrentwal.com/bbs/s.php?k=" + query.getQuery() + "&q=";
+
+        if(url.indexOf("https://") >= 0){
+          setSSL();
+        }
 
         //토렌트왈 connection
         Document doc = Jsoup.connect(url).get();
@@ -63,15 +81,18 @@ public class crawlingController {
           }else{
             System.out.println("날짜가 더 빠르므로 넘어갑니다.");
           }
-
         }
       }
     } catch (IOException e) {
       e.printStackTrace();
+    } catch (KeyManagementException e) {
+      e.printStackTrace();
+    } catch (NoSuchAlgorithmException e) {
+      e.printStackTrace();
     }
-
   }
 
+  //마그넷 추출 및 생성
   public String magnetString(String listName) {
     
     int start = listName.indexOf("\'")+1;
@@ -83,6 +104,7 @@ public class crawlingController {
 
   }
 
+  //다운받은 파일 DB에 저장
   public void addVideo(String title, String kind){
 
     if(!videoRepo.existsByName(title)){
@@ -97,6 +119,7 @@ public class crawlingController {
 
   }
 
+  //다운받는 파일 날짜 확인
   public int catchDate(String title) {
 
     String[] word = title.split("\\.", 4);
@@ -111,5 +134,35 @@ public class crawlingController {
     return -1;
 
   }
+
+  //SSL 인증
+  public static void setSSL() throws NoSuchAlgorithmException, KeyManagementException {
+    TrustManager[] trustAllCerts = new TrustManager[] { 
+      new X509TrustManager(){
+      
+        @Override
+        public X509Certificate[] getAcceptedIssuers() {
+          return null;
+        }
+      
+        @Override
+        public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+        }
+      
+        @Override
+        public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+        }
+      }
+    }; 
+    SSLContext sc = SSLContext.getInstance("SSL"); 
+    sc.init(null, trustAllCerts, new SecureRandom()); 
+    HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() { 
+      @Override public boolean verify(String hostname, SSLSession session) { 
+        return true; 
+      } 
+    }); 
+  HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory()); 
+
+}
 
 }
