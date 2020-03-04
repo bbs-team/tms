@@ -38,7 +38,7 @@ public class crawlingController {
   @Autowired
   private SearchingRepository searchingRepo;
 
-  @Scheduled(cron = "0 * * * * *")
+  @Scheduled(cron = "10 * * * * *")
   public void crawling() {
 
     try {
@@ -46,7 +46,7 @@ public class crawlingController {
       Iterable<Searching> searchingList = searchingRepo.findAll();
 
       for(Searching query : searchingList){
-        String url = "https://torrentwal.com/bbs/s.php?k=" + query.getQuery() + "&q=";
+        String url = "https://x.ibe.kr/bbs/search.php?url=https%3A%2F%2Fx.ibe.kr%2Fbbs%2Fsearch.php&stx=" + "런닝맨 720p NEXT"; //query.getQuery();
 
         if(url.indexOf("https://") >= 0){
           setSSL();
@@ -54,32 +54,36 @@ public class crawlingController {
 
         //토렌트왈 connection
         Document doc = Jsoup.connect(url).get();
-
-        Elements Eles = doc.select("tr[class=bg1]");
+        Elements Eles = doc.select("div[class=media-heading]");
 
         for(Element ele : Eles){
           //magent 추출을 위한 jsoup select
-          Elements elementMagnet = ele.select("td[class=num] > a");
-          Elements elementTitle = ele.select("td[class=subject] > a[target=s]");
+          Elements elementMagnet = ele.select("a");
+          Elements elementTitle = ele.select("a > b");
           String title = elementTitle.text();
-          String fullmagnet = elementMagnet.attr("href");
+          String fullmagnet = elementMagnet.attr("onClick");
 
           //magnet정보만 뽑기
           String magnet = magnetString(fullmagnet);
+          if(magnet.length() < 25) continue;
+          System.out.println("title: " + title);
+          System.out.println("magnet: " + magnet);
           
+          String shellString = "transmission-remote -a \"" + magnet + "\" -w /media/hdd/complete-torrent/" + query.getKind() + "/" + query.getName();
+          System.out.println(shellString);
           //검색한 list's date 추출
           int Date = catchDate(title);
           if(Date == -1) continue;
           
           if(Date > query.getDate()){
-            //searching 날짜 최신화
-            query.setDate(Date);
-            searchingRepo.save(query);
+             //searching 날짜 최신화
+             query.setDate(Date);
+             searchingRepo.save(query);
 
-            //다운받은 항목 추가
-            addVideo(title, query.getKind());
+             //다운받은 항목 추가
+             addVideo(title, query.getKind());
           }else{
-            System.out.println("날짜가 더 빠르므로 넘어갑니다.");
+             System.out.println("날짜가 더 빠르므로 넘어갑니다.");
           }
         }
       }
@@ -97,8 +101,7 @@ public class crawlingController {
     
     int start = listName.indexOf("\'")+1;
     int last = listName.lastIndexOf("\'");
-    String magnet = "magnet:?xt=urn:btih:";
-    magnet += listName.substring(start, last);
+    String magnet = listName.substring(start, last);
 
     return magnet;
 
@@ -129,17 +132,18 @@ public class crawlingController {
     else if(word[2].length() == 6){
       Date = Integer.parseInt(word[2]);
       return Date;
+    }else if(word[3].length() == 6){
+      Date = Integer.parseInt(word[2]);
+      return Date;
     }
-
     return -1;
-
   }
 
   //SSL 인증
   public static void setSSL() throws NoSuchAlgorithmException, KeyManagementException {
     TrustManager[] trustAllCerts = new TrustManager[] { 
       new X509TrustManager(){
-      
+
         @Override
         public X509Certificate[] getAcceptedIssuers() {
           return null;

@@ -36,7 +36,6 @@ public class UserController {
    */
   @GetMapping(value = "")
   public Iterable<User> getUserList() {
-    System.out.println("오긴옴");
     return userRepo.findAll();
   }
 
