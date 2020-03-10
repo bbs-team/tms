@@ -7,11 +7,11 @@ import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
-import javax.net.ssl.HostnameVerifier; 
-import javax.net.ssl.HttpsURLConnection; 
-import javax.net.ssl.SSLContext; 
-import javax.net.ssl.SSLSession; 
 import javax.net.ssl.X509TrustManager;
 
 import com.bbs.tms.entity.Searching;
@@ -19,6 +19,8 @@ import com.bbs.tms.entity.Video;
 import com.bbs.tms.repository.SearchingRepository;
 import com.bbs.tms.repository.VideoRepository;
 
+import org.apache.commons.exec.CommandLine;
+import org.apache.commons.exec.DefaultExecutor;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -71,19 +73,26 @@ public class crawlingController {
           
           String shellString = "transmission-remote -a \"" + magnet + "\" -w /media/hdd/complete-torrent/" + query.getKind() + "/" + query.getName();
           System.out.println(shellString);
-          //검색한 list's date 추출
-          int Date = catchDate(title);
-          if(Date == -1) continue;
-          
-          if(Date > query.getDate()){
-             //searching 날짜 최신화
-             query.setDate(Date);
-             searchingRepo.save(query);
 
-             //다운받은 항목 추가
-             addVideo(title, query.getKind());
+          int exitcode = shellCommand(shellString);
+
+          if(exitcode == 1){
+            System.out.println("Shell command Error.");
           }else{
-             System.out.println("날짜가 더 빠르므로 넘어갑니다.");
+            //검색한 list's date 추출
+            int Date = catchDate(title);
+            if(Date == -1) continue;
+            
+            if(Date > query.getDate()){
+              //searching 날짜 최신화
+              query.setDate(Date);
+              searchingRepo.save(query);
+
+              //다운받은 항목 추가
+              addVideo(title, query.getKind());
+            }else{
+              System.out.println("날짜가 더 빠르므로 넘어갑니다.");
+            }
           }
         }
       }
@@ -92,6 +101,8 @@ public class crawlingController {
     } catch (KeyManagementException e) {
       e.printStackTrace();
     } catch (NoSuchAlgorithmException e) {
+      e.printStackTrace();
+    } catch (Exception e) {
       e.printStackTrace();
     }
   }
@@ -167,6 +178,27 @@ public class crawlingController {
     }); 
   HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory()); 
 
-}
+  }
+
+  public int shellCommand(String shell){
+    
+    int exitCode = 1;
+
+    DefaultExecutor executor = new DefaultExecutor();
+
+    try {
+
+      CommandLine cmdLine = CommandLine.parse(shell);
+
+      exitCode = executor.execute(cmdLine);
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+
+
+    return exitCode;
+  }
 
 }
