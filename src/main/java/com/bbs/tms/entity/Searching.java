@@ -36,4 +36,7 @@ public class Searching {
   @Column(length = 50, nullable = false)
   private String query;
 
+  @Column(length = 10, nullable = false)
+  private String Broadcast;
+
 }

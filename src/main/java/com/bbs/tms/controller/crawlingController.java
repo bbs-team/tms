@@ -40,7 +40,7 @@ public class crawlingController {
   @Autowired
   private SearchingRepository searchingRepo;
 
-  @Scheduled(cron = "10 * * * * *")
+  @Scheduled(cron = "* * 1 * * *")
   public void crawling() {
 
     try {
@@ -70,6 +70,20 @@ public class crawlingController {
           if(magnet.length() < 25) continue;
           System.out.println("title: " + title);
           System.out.println("magnet: " + magnet);
+
+          int Date = catchDate(title);
+          if(Date == -1) continue;
+
+          if(Date > query.getDate()){
+            //searching 날짜 최신화
+            query.setDate(Date);
+            searchingRepo.save(query);
+
+            //다운받은 항목 추가
+            addVideo(title, query.getKind());
+          }else{
+            System.out.println("날짜가 더 빠르므로 넘어갑니다.");
+          }
           
           String shellString = "transmission-remote -a \"" + magnet + "\" -w /media/hdd/complete-torrent/" + query.getKind() + "/" + query.getName();
           System.out.println(shellString);
@@ -78,21 +92,6 @@ public class crawlingController {
 
           if(exitcode == 1){
             System.out.println("Shell command Error.");
-          }else{
-            //검색한 list's date 추출
-            int Date = catchDate(title);
-            if(Date == -1) continue;
-            
-            if(Date > query.getDate()){
-              //searching 날짜 최신화
-              query.setDate(Date);
-              searchingRepo.save(query);
-
-              //다운받은 항목 추가
-              addVideo(title, query.getKind());
-            }else{
-              System.out.println("날짜가 더 빠르므로 넘어갑니다.");
-            }
           }
         }
       }

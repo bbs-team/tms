@@ -12,5 +12,6 @@ import org.springframework.stereotype.Repository;
 public interface VideoRepository extends CrudRepository<Video, Integer> {
 
   public boolean existsByName(String name);
+  public Object findByKind(String kind);
 
 }
